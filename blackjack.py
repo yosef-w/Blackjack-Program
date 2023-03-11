@@ -1,48 +1,96 @@
 import random
 
-# class Game:
-#     # establish the rules of the game
-#     def __init__(self):
-#         pass
-
-
+suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades']
+ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
+values = {"Ace": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "Jack": 10, "Queen": 10, "King": 10}
 
 
 class Card:
-    def __init__(self, suit, card_type, value):
+    def __init__(self, suit, rank, is_ace):
         # defining the card's suit, face value, and value of the card
-        suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades']
-        card_type = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
-        values = {"Ace": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "Jack": 10, "Queen": 10, "King": 10}
         self.suit = suit
-        self.card_type = card_type
-        self.value = value
+        self.rank = rank
+        self.is_ace = is_ace
+
     
     def __str__(self):
-        return f"{self.suit} of {self.card_type} {self.value}"
+        return f"{self.rank} of {self.suit}"
     
-    def __repr__(self):
-        pass
+    def show(self):
+        print(f"{self.rank} of {self.suit}")
     
-    def price(self):
-        if self.
+
+
+card = Card(suits[random.randint(0, 3)], ranks[random.randint(0, 13)], False)
+card.show() 
 
 
 class Deck:
     def __init__(self):
         self.cards = []
-        for suit in self.suits:
-            for value in self.value:
-                self.cards.append(Card(suit, value))
-    
+        
+    def build_deck(self):    
+        for suit in suits:
+            for rank in ranks:
+                card = Card(suit, rank, False)
+                self.cards.append(card)
+
+    def show_deck(self):
+        for card in self.cards:
+            card.show()
+
     def shuffle(self):
         print("Shuffling the deck...")
         random.shuffle(self.cards)
+        print("Deck shuffled!")
+
+    def draw(self):
+        return self.cards.pop()
+    
+
+deck = Deck()
+deck.build_deck()
+deck.shuffle()
+print(deck.draw())
+
+class Player:
+    def __init__(self, name):
+        self.hand = []
+        self.name = name
+        self.value = 0
+        self.aces = 0
+
+    def add_card(self, deck):
+        card = deck.draw()
+        self.hand.append(card)
+        self.value += values[card.rank]
+        if card.rank == "Ace":
+            self.aces += 1
+        print(values[card.rank])
+
+    def remove_card(self):
+        self.hand.pop(0)
+        self.value -= values[self.hand[0].rank]
+        if self.hand[0].rank == "Ace":
+            self.aces -= 1
+        print(values[self.hand[0].rank])
+
+    def hit(self, card):
+        card = self.cards.pop(0)
+        self.cards.append(card)
+        self.value += values[card.rank]
+
+    def stand(self):
+        pass
+
+bob = Player("Bob")
+bob.add_card(deck)
 
 class Dealer:
-    def __init__(self, deck):
+    def __init__(self):
         self.cards = []
-        self.deck = deck
+        self.value = 0
+        self.aces = 0
 
     def deal(self):
         self.cards.append(self.deck.cards.pop(0))
@@ -56,16 +104,7 @@ class Dealer:
            
 
 
-class Player:
-    def __init__(self, deck, dealer):
-        self.cards = []
-        self.deck = deck
-        self.dealer = dealer
-
-    def hit(self):
-
-    def stand(self):
 
 
-def main():
-    print("Welcome to Blackjack!")
+# def main():
+#     print("Welcome to Blackjack: ALL OR NOTHING EDITION")

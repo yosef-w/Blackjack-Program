@@ -1,4 +1,5 @@
 import random
+import time
 
 suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades']
 ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
@@ -55,6 +56,7 @@ class Human:
         self.hand.append(deck.draw())
         self.hand.append(deck.draw())
         self.show_hand()
+        return self.hand
 
     def hit(self,deck):
         card = deck.draw()
@@ -62,7 +64,10 @@ class Human:
         self.value += values[card.rank]
         if card.rank == "Ace":
             self.aces += 1
-        self.check_ace
+        self.check_ace()
+
+    def new_hand(self, deck):
+        self.hand =[]
 
     def calculate_score(self):
         self.value = 0
@@ -92,10 +97,12 @@ class Dealer(Human):
         if show:
             for card in self.hand:
                 print(f"{card.rank} of {card.suit}")
+            print("\n" + '*' * 25)
         else:
             print("Hidden Card")
             if len(self.hand) > 1:
                 print(f"{self.hand[1].rank} of {self.hand[1].suit}")
+            print("\n" + '*' * 25)
 
     def continue_game(self, deck):
         while True:
@@ -103,149 +110,126 @@ class Dealer(Human):
                 break
             elif self.calculate_score() < 17:
                 print("Dealer's score is below 17. Dealer hits...")
+                time.sleep(1)
                 self.hit(deck)
                 self.show_hand(show=True)
+                break
         
 
 class Player(Human):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self):
+        super().__init__('Player')
         self.player_score = 0
 
     def show_hand(self):
         print(f"\n{self.name}'s hand:\n")
         for card in self.hand:
             print(f"{card.rank} of {card.suit}")
-        print('')
+        print("=" * 40)
 
+
+class Game:
+    def __init__(self):
+        self.deck = Deck()
+        self.player = Player()
+        self.dealer = Dealer()
+        self.active = True
+
+                
+    def play_again(self):            
+        retry = input("Would you like to play again? (y/n) ")
+        if retry.lower() == "n":
+            print("Goodbye! Come back if you would like to play again.")
+            exit()
+        elif retry.lower() == "y":
+            self.deck = Deck()
+            self.dealer.new_hand(self.deck)
+            self.player.new_hand(self.deck)
+            self.active = True
+            self.play()
+        else:
+            print("Invalid entry. Please enter 'y' or 'n'")
+            self.play_again()
+
+
+    def play(self):
+        print("\nWELCOME TO BLACKJACK:")
+        opening = input("Would you like to play Blackjack? (y/n) ")
+        if opening.lower() == "y":
+            # name = input("What is your name? ")
+            # player = Player()
+            # dealer = Dealer()
+            while self.active:
+                self.deck.shuffle()
+                print("\nThe deck is shuffled -- Let's play!")
+                time.sleep(1)
+                self.dealer.deal(self.deck)
+                self.player.deal(self.deck)
+
+                player_score = self.player.calculate_score()
+                dealer_score = self.dealer.calculate_score()
+
+                if player_score == 21:
+                    print("BLACKJACK! You win!")
+                    self.play_again()
+
+                    
+                if dealer_score == 21:
+                    print("Dealer has blackjack... You lose.")
+                    self.play_again()
+
+                while player_score < 21 and dealer_score < 21:
+                    choice = input("Hit or Stand? ")
+                    if choice.lower() == "hit":
+                        self.player.hit(self.deck)
+                        time.sleep(1)
+                        self.dealer.show_hand()
+                        self.player.show_hand()
+                        player_score = self.player.calculate_score()
+                        if player_score > 21:
+                            print("You scored over 21...Bust! You lose!")
+                            self.play_again()
+                        elif player_score == 21:
+                            print("BLACKJACK! You win!")
+                            self.play_again()
+
+
+
+                    elif choice.lower() == "stand":
+                        dealer_score = self.dealer.calculate_score()
+                        time.sleep(1)
+                        self.dealer.show_hand(show=True)
+                        time.sleep(1)
+                        print(f"Dealer's score is: {dealer_score}")
+                        while dealer_score < 17:
+                            self.dealer.continue_game(self.deck)
+                            dealer_score = self.dealer.calculate_score()
+                            self.player.show_hand()
+                            if dealer_score > 21:
+                                print("Dealer scored over 21... You win!")
+                                self.play_again()
+                                
+                        if dealer_score > player_score and dealer_score < 22:
+                            print(f"Dealer wins with a score of {dealer_score}. You lose.")
+                            self.play_again()
+                            
+                        elif dealer_score < player_score and player_score < 22:
+                            print(f"You scored {player_score}, you win!")
+                            self.play_again()
+                            
+                        elif dealer_score == player_score:
+                            print("It's a tie!")
+                            self.play_again()                   
+
+                    else:
+                        print("Invalid entry. Please enter 'hit' or'stand'")
+
+        elif opening.lower() == "n":
+            print("Goodbye! Come back if you would like to play Blackjack.")
+            active = False
 
 def main():
-    deck = Deck()
-    active = True
-
-    print("WELCOME TO BLACKJACK:")
-    opening = input("Would you like to play Blackjack? (y/n) ")
-    if opening.lower() == "y":
-        name = input("What is your name? ")
-        player = Player(name)
-        dealer = Dealer()
-        while active and name.lower():
-            deck.shuffle()
-            print("\nThe deck is shuffled -- Let's play!")
-            dealer.deal(deck)
-            print("\n" + '=' * 25)
-            player.deal(deck)
-
-            player_score = player.calculate_score()
-            dealer_score = dealer.calculate_score()
-
-            if player_score == 21:
-                print("BLACKJACK! You win!")
-                retry = input("Would you like to play again? (y/n) ")
-                if retry.lower() == "n":
-                    print("Goodbye! Come if you would like to play again.")
-                    active = False
-                elif retry.lower() == "y":
-                    continue
-                else:
-                    print("Invalid entry. Please enter 'y' or 'n'")
-                    break
-            if dealer_score == 21:
-                print("Dealer has blackjack... You lose.")
-                break
-
-            while player_score < 21 or dealer_score < 21:
-                choice = input("Hit or Stand? ")
-                if choice.lower() == "hit":
-                    player.hit(deck)
-                    dealer.show_hand()
-                    player.show_hand()
-                    player_score = player.calculate_score()
-                    if player_score > 21:
-                        print("You scored over 21...Bust! You lose!")
-                        active = False
-                        break
-                    elif player_score == 21:
-                        print("BLACKJACK! You win!")
-                        active = False
-                        break
-
-
-                elif choice.lower() == "stand":
-                    dealer_score = dealer.calculate_score()
-                    print(f"Dealer's final score is: {dealer_score}")
-                    while dealer_score < 17:
-                        dealer.continue_game(deck)
-                        dealer_score = dealer.calculate_score()
-                        player.show_hand()
-                        if dealer_score > 21:
-                            print("Dealer scored over 21... You win!")
-                            retry = input("Would you like to play again? (y/n) ")
-                            if retry.lower() == "n":
-                                print("Goodbye! Come if you would like to play again.")
-                                active = False
-                            elif retry.lower() == "y":
-                                deck = Deck()
-                                dealer = Dealer()
-                                player = Player(name)
-                                print(player.name)
-                                continue
-                    if dealer_score > player_score and dealer_score < 22:
-                        print(f"Dealer wins with a score of {dealer_score}. You lose.")
-                        retry = input("Would you like to play again? (y/n) ")
-                        if retry.lower() == "n":
-                            print("Goodbye! Come if you would like to play again.")
-                            active = False
-                        elif retry.lower() == "y":
-                            deck = Deck()
-                            dealer = Dealer()
-                            player = Player(name)
-                            continue
-                    elif dealer_score < player_score and player_score < 22:
-                        print(f"You scored {player_score}, you win!")
-                        retry = input("Would you like to play again? (y/n) ")
-                        if retry.lower() == "n":
-                            print("Goodbye! Come if you would like to play again.")
-                            active = False
-                        elif retry.lower() == "y":
-                            deck = Deck()
-                            dealer = Dealer()
-                            player = Player(name)
-                            print(player.name)
-                            continue
-                    elif dealer_score == player_score:
-                        print("It's a tie!")
-                        retry = input("Would you like to play again? (y/n) ")
-                        if retry.lower() == "n":
-                            print("Goodbye! Come if you would like to play again.")
-                            active = False
-                        elif retry.lower() == "y":
-                            deck = Deck()
-                            dealer = Dealer()
-                            player = Player(name)
-                            print(player.name)
-                            continue
-
-                else:
-                    print("Invalid entry. Please enter 'hit' or'stand'")
-            retry = input("Would you like to play again? (y/n) ")
-            if retry.lower() == "n":
-                print("Goodbye! Come if you would like to play again.")
-                active = False
-            elif retry.lower() == "y":
-                deck = Deck()
-                dealer = Dealer()
-                player = Player(name)
-                continue
-            else:
-                print("Invalid entry. Please enter 'y' or 'n'")
-                break
-                
-    elif opening.lower() == "n":
-        print("Goodbye! Come if you would like to play again.")
-        active = False
-
-    else:
-        print("Invalid entry. Please enter 'y' or 'n'" )
+    game = Game()
+    game.play()
 
 main()
